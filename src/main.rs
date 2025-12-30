@@ -5,6 +5,7 @@ fn main() {
     let mut rota = String::new();
     let _ = std::io::stdout().flush();
     std::io::stdin().read_line(&mut rota).unwrap();
+    let base_url = rota.trim().to_string();
     println!();
 
     let mut stri = String::new();
@@ -21,27 +22,43 @@ fn main() {
     println!();
     let funcao: u8 = stri.trim().parse().unwrap();
     let client = Client::new();
-    let subrota = String::new();
+    let mut subrota = String::new();
     print!("digite a subrota: ");
     let _ = std::io::stdout().flush();
-    std::io::stdin().read_line(&mut rota).unwrap();
+    std::io::stdin().read_line(&mut subrota).unwrap();
     println!();
+    let route = base_url + "/" + subrota.trim();
     let retorno = match funcao {
-        1 => client
-            .get(rota + subrota.as_str())
-            .send()
-            .unwrap()
-            .text()
-            .unwrap(),
+        1 => client.get(route).send().unwrap().text().unwrap(),
         2 => {
             print!("digite o json: ");
             let mut jason = String::new();
             let _ = std::io::stdout().flush();
             std::io::stdin().read_line(&mut jason).unwrap();
-            let jason = jason.trim();
+            let jason = jason.trim().trim_start_matches(' ').trim_end();
             println!();
             client
-                .post(rota + subrota.as_str())
+                .post(route)
+                .json(&serde_json::from_str::<serde_json::Value>(jason).unwrap())
+                .send()
+                .unwrap()
+                .text()
+                .unwrap()
+        }
+        3 => {
+            let mut jason = String::new();
+            let mut path = String::new();
+            print!("digite o id: ");
+            let _ = std::io::stdout().flush();
+            std::io::stdin().read_line(&mut path).unwrap();
+            let path = path.trim();
+            print!("digite o json: ");
+            let _ = std::io::stdout().flush();
+            std::io::stdin().read_line(&mut jason).unwrap();
+            let jason = jason.trim().trim_start_matches(' ').trim_end();
+            println!();
+            client
+                .put(route + "/" + path)
                 .json(&serde_json::from_str::<serde_json::Value>(jason).unwrap())
                 .send()
                 .unwrap()
@@ -50,5 +67,5 @@ fn main() {
         }
         _ => "erro".to_string(),
     };
-    println!("{retorno}");
+    println!("{}", retorno);
 }
