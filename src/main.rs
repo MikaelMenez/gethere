@@ -27,9 +27,9 @@ fn main() {
     let _ = std::io::stdout().flush();
     std::io::stdin().read_line(&mut subrota).unwrap();
     println!();
-    let route = base_url + "/" + subrota.trim();
+    let route = base_url + subrota.trim();
     let retorno = match funcao {
-        1 => client.get(route).send().unwrap().text().unwrap(),
+        1 => client.get(&route).send().unwrap(),
         2 => {
             print!("digite o json: ");
             let mut jason = String::new();
@@ -38,11 +38,9 @@ fn main() {
             let jason = jason.trim().trim_start_matches(' ').trim_end();
             println!();
             client
-                .post(route)
+                .post(&route)
                 .json(&serde_json::from_str::<serde_json::Value>(jason).unwrap())
                 .send()
-                .unwrap()
-                .text()
                 .unwrap()
         }
         3 => {
@@ -58,14 +56,30 @@ fn main() {
             let jason = jason.trim().trim_start_matches(' ').trim_end();
             println!();
             client
-                .put(route + "/" + path)
+                .put(format!("{}/{}", &route, path))
                 .json(&serde_json::from_str::<serde_json::Value>(jason).unwrap())
                 .send()
                 .unwrap()
-                .text()
+        }
+        4 => {
+            let mut path = String::new();
+            print!("digite o id: ");
+            let _ = std::io::stdout().flush();
+            std::io::stdin().read_line(&mut path).unwrap();
+            let path = path.trim();
+            println!();
+            client
+                .delete(format!("{}/{}", &route, path))
+                .send()
                 .unwrap()
         }
-        _ => "erro".to_string(),
+        _ => panic!("inválido"),
     };
-    println!("{}", retorno);
+    let url = retorno.url().to_string();
+    let status_code = retorno.status();
+    let body = retorno.text().unwrap();
+    println!(
+        "\x1B[32murl:\x1B[0m \x1B[92m{}\x1B[0m\n\x1B[34mstatus:\x1B[0m \x1B[94m{}\x1B[0m\n\x1B[31mbody:\x1B[0m\n\x1B[91m{}\x1B[0m",
+        url, status_code, body
+    );
 }
